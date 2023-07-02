@@ -1,0 +1,20 @@
+{
+  "name": "expressjs-ipa-decryptor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yakov5776/expressjs-IPA-decryptor.git"
+  },
+  "author": "Yakov5776",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yakov5776/expressjs-IPA-decryptor/issues"
+  },
+  "homepage": "https://github.com/Yakov5776/expressjs-IPA-decryptor#readme",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  }
+}
