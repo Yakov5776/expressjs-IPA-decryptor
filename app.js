@@ -1,12 +1,11 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const checkra1n = require('./checkra1n.js');
+const deviceController = require('./deviceController.js');
 
 dotenv.config();
-
 const app = express();
 const port = process.env.PORT || 3000;
-
-let dumpInProgress = false;
 
 app.use(express.json());
 
@@ -25,30 +24,35 @@ app.get('/', (req, res) => {
 });
 
 app.get('/stream-ipa', async (req, res) => {
-    if (dumpInProgress)
-        res.json({ status: 'already_started'});
-    else
-    {
-        StreamIPA();
-        res.json({ status: 'started'});
-    }
+  // TODO: find available device
+ res.json({ status: 'started', device: 'todo'});
 });
 
-app.get('/progress', async (req, res) => {
-    res.json({ status: dumpInProgress ? 'pending' : 'complete'});
+
+app.get('/device/:uuid/', (req, res) => {
+  const { uuid } = req.params;
+  const devices = deviceController.getDevices();
+  const device = devices.find(dev => dev.id === uuid);
+
+  if (device) res.json(device);
+  else res.status(400).json({ error: 'device uuid doesn\'t exist' });
+});
+
+app.get('/get-connected-devices', async (req, res) => {
+  res.json({"devices": deviceController.getDevices()});
+});
+
+app.get('/reload-devices', async (req, res) => {
+  await deviceController.reloadDevices();
+  res.json({ status: 'complete'});
 });
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-function StreamIPA() {
-    return new Promise((resolve, reject) => {
-      // TODO
-      dumpInProgress = true;
-      setTimeout(() => {
-        dumpInProgress = false;
-        resolve();
-      }, 5000);
-    });
-  }
+(async () =>
+{
+  await checkra1n.download();
+  await deviceController.reloadDevices();
+})();
