@@ -1,14 +1,14 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const git = require('git-rev-sync');
+const path = require('path');
+const { UseAuthentication } = require('./middleware.js'); 
 const deviceController = require('./deviceController.js');
 
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
-
-app.use(express.json());
 
 app.get('/', (req, res) => {
   try {
@@ -20,15 +20,9 @@ app.get('/', (req, res) => {
   }
 });
 
-app.use((req, res, next) => {
-  const authHeader = req.headers['authorization'];
+app.use(express.static(path.join(__dirname, 'static')));
 
-  if (authHeader === process.env.ACCESS_TOKEN) {
-    next();
-  } else {
-    res.status(401).json({ error: 'Unauthorized' });
-  }
-});
+app.use(UseAuthentication);
 
 app.get('/stream-ipa', async (req, res) => {
   // TODO: find available device
