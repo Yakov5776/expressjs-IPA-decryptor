@@ -47,7 +47,7 @@ const getSsh = function(id) {
 
 const setupSsh = function(id) {
   const port = ClientSshPort++;
-  const iproxy = spawn('iproxy', [port, 22, id]);
+  const iproxy = spawn('iproxy', [port, 22, '-u', id]); // if you're having problems with iproxy, try omitting '-u'
   iproxyList[id] = {iproxy_pid: iproxy.pid, port: port};
 }
 
