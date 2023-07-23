@@ -1,6 +1,5 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const checkra1n = require('./checkra1n.js');
 const deviceController = require('./deviceController.js');
 
 dotenv.config();
@@ -53,6 +52,5 @@ app.listen(port, () => {
 
 (async () =>
 {
-  await checkra1n.download();
   await deviceController.reloadDevices();
 })();
