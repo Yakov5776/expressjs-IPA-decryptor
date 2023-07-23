@@ -1,12 +1,24 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const git = require('git-rev-sync');
 const deviceController = require('./deviceController.js');
+
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
+
+app.get('/', (req, res) => {
+  try {
+    const commitHash = git.long();
+    res.json({ status: 'Service is OK!', version: commitHash });
+  } catch (err) {
+    console.error('Error retrieving commit hash:', err);
+    res.json({ status: 'Service is OK!' });
+  }
+});
 
 app.use((req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -16,10 +28,6 @@ app.use((req, res, next) => {
   } else {
     res.status(401).json({ error: 'Unauthorized' });
   }
-});
-
-app.get('/', (req, res) => {
-  res.json({ status: 'Service is OK!' })
 });
 
 app.get('/stream-ipa', async (req, res) => {
