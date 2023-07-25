@@ -63,8 +63,8 @@ const routineDeviceCheck = function() {
     const connectionParams = {
       host: '127.0.0.1',
       port,
-      username: process.env.ssh_override_username || 'root',
-      password: process.env.ssh_override_username || 'alpine',
+      username: process.env.SSH_OVERRIDE_USERNAME || 'root',
+      password: process.env.SSH_OVERRIDE_PASSWORD || 'alpine',
     };
 
     conn.on('ready', () => {
