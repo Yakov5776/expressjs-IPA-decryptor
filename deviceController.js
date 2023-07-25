@@ -73,10 +73,13 @@ const routineDeviceCheck = function() {
       conn.end();
     });
   
-    conn.on('error', (err) => {
-      device.status = 'offline';
-      device.isJailbroken = false;
-      webhook.sendWebhook(`[${device.id}]: Device is offline or not jailbroken! go to http://${process.env.HOST}/device/${device.id}/start-jailbreak when your device is in DFU mode.`);
+    conn.on('error', () => {
+      if (device.status != 'offline')
+      {
+        device.status = 'offline';
+        device.isJailbroken = false;
+        webhook.sendWebhook(`[${device.id}]: Device is offline or not jailbroken! go to http://${process.env.HOST}/device/${device.id}/start-jailbreak when your device is in DFU mode.`);
+      }
     });
 
     conn.connect(connectionParams);
