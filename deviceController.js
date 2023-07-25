@@ -37,8 +37,7 @@ const isJailbroken = function(id) {
   try {
     const output = execSync(`ideviceinstaller -u ${id} -l -o list_system`);
     return output.includes('Cydia');
-  } catch (error) {
-    console.error('Error executing occurred: ', error);
+  } catch {
     return false;
   }
 };
