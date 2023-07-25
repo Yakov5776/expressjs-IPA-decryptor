@@ -39,13 +39,24 @@ app.get('/device/:uuid/', (req, res) => {
   else res.status(400).json({ error: 'device uuid doesn\'t exist' });
 });
 
+app.get('device/:uuid/start-jailbreak', async (req, res) => {
+  const { uuid } = req.params;
+  deviceController.performJailbreak(uuid)
+    .then(() => {
+      res.json({ status: 'completed'});
+    })
+    .catch((err) => {
+      res.status(500).json({ status: 'failed', error: err.message});
+    });
+});
+
 app.get('/get-connected-devices', async (req, res) => {
   res.json({"devices": deviceController.getDevices()});
 });
 
 app.get('/reload-devices', async (req, res) => {
   await deviceController.reloadDevices();
-  res.json({ status: 'complete'});
+  res.json({ status: 'completed'});
 });
 
 app.listen(port, () => {

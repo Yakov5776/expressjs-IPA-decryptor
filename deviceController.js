@@ -1,4 +1,6 @@
 const { exec, execSync, spawn } = require('child_process');
+const webhook = require('./webhooks.js');
+const Client = require('ssh2').Client;
 var deviceList = [];
 var iproxyList = [];
 let ClientSshPort = 2222;
@@ -15,7 +17,7 @@ const getConnectedDevices = async () => {
         } else {
           let devices = stdout.trim().split('\n');
           if (devices.length === 1 && devices[0] === '') devices = [];
-          else devices = devices.map(id => ({ id, status: 'ready', isJailbroken: isJailbroken(id), ssh: getSsh(id)}));
+          else devices = devices.map(id => ({ id, status: 'uninitialized', isJailbroken: isJailbroken(id), ssh: getSsh(id)}));
           resolve(devices);
         }
       });
@@ -24,6 +26,7 @@ const getConnectedDevices = async () => {
 
 const reloadDevices = async function() {
     deviceList = await getConnectedDevices();
+    await routineDeviceCheck();
 }
 
 const getDevices = function() {
@@ -51,4 +54,46 @@ const setupSsh = function(id) {
   iproxyList[id] = {iproxy_pid: iproxy.pid, port: port};
 }
 
-module.exports = { getDevices, reloadDevices };
+const routineDeviceCheck = function() {
+  for (const device of deviceList)
+  {
+    const conn = new Client();
+    const port = device.ssh.port;
+
+    const connectionParams = {
+      host: '127.0.0.1',
+      port,
+      username: process.env.ssh_override_username || 'root',
+      password: process.env.ssh_override_username || 'alpine',
+    };
+
+    conn.on('ready', () => {
+      device.status = 'ready';
+      device.isJailbroken = true;
+      conn.end();
+    });
+  
+    conn.on('error', (err) => {
+      device.status = 'offline';
+      device.isJailbroken = false;
+      webhook.sendWebhook(`[${device.id}]: Device is offline or not jailbroken! go to http://${process.env.HOST}/device/${device.id}/start-jailbreak when your device is in DFU mode.`);
+    });
+
+    conn.connect(connectionParams);
+  }
+}
+
+const performJailbreak = async(id) =>
+{
+  // TODO
+  return new Promise((resolve, reject) => {
+    resolve();
+  })
+}
+
+module.exports = {
+  getDevices,
+  reloadDevices,
+  routineDeviceCheck,
+  performJailbreak
+};
