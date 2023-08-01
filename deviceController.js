@@ -1,27 +1,38 @@
 const { exec, execSync, spawn } = require('child_process');
+const util = require('util');
 const webhook = require('./webhooks.js');
 const Client = require('ssh2').Client;
+const execute = util.promisify(exec);
 var deviceList = [];
 var iproxyList = [];
 let ClientSshPort = 2222;
 
 const getConnectedDevices = async () => {
-    return new Promise((resolve, reject) => {
-      exec('idevice_id -l', (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error executing command: ${error}`);
-          reject(error);
-        } else if (stderr) {
-          console.error(`Command stderr: ${stderr}`);
-          reject(stderr);
-        } else {
-          let devices = stdout.trim().split('\n');
-          if (devices.length === 1 && devices[0] === '') devices = [];
-          else devices = devices.map(id => ({ id, status: 'uninitialized', isJailbroken: isJailbroken(id), ssh: getSsh(id)}));
-          resolve(devices);
-        }
-      });
-    });
+  try {
+    const { stdout, stderr } = await execute('idevice_id -l');
+
+    if (stderr) {
+      console.error(`Command stderr: ${stderr}`);
+      throw new Error(stderr);
+    }
+
+    let devices = stdout.trim().split('\n');
+    if (devices.length === 1 && devices[0] === '') {
+      devices = [];
+    } else {
+      devices = await Promise.all(devices.map(async (id) => ({
+        id,
+        status: 'uninitialized',
+        isJailbroken: await isJailbroken(id),
+        ssh: await getSsh(id)
+      })));
+    }
+
+    return devices;
+  } catch (error) {
+    console.error(`Error executing command: ${error}`);
+    throw error;
+  }
 };
 
 const reloadDevices = async function() {
@@ -33,7 +44,7 @@ const getDevices = function() {
     return deviceList;
 }
 
-const isJailbroken = function(id) {
+const isJailbroken = async function(id) {
   try {
     const output = execSync(`ideviceinstaller -u ${id} -l -o list_system`);
     return output.includes('Cydia');
@@ -42,12 +53,12 @@ const isJailbroken = function(id) {
   }
 };
 
-const getSsh = function(id) {
-  if (!iproxyList[id]) setupSsh(id)
+const getSsh = async function(id) {
+  if (!iproxyList[id]) await setupSsh(id)
   return iproxyList[id];
 }
 
-const setupSsh = function(id) {
+const setupSsh = async function(id) {
   const port = ClientSshPort++;
   const iproxy = spawn('iproxy', [port, 22, '-u', id]); // if you're having problems with iproxy, try omitting '-u'
   iproxyList[id] = {iproxy_pid: iproxy.pid, port: port};
