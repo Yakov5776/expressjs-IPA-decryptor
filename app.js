@@ -39,7 +39,7 @@ app.get('/device/:uuid/', (req, res) => {
   else res.status(400).json({ error: 'device uuid doesn\'t exist' });
 });
 
-app.get('device/:uuid/start-jailbreak', async (req, res) => {
+app.get('/device/:uuid/start-jailbreak', async (req, res) => {
   const { uuid } = req.params;
   deviceController.performJailbreak(uuid)
     .then(() => {
