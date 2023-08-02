@@ -50,6 +50,14 @@ app.get('/device/:uuid/start-jailbreak', async (req, res) => {
     });
 });
 
+app.get('/device/:uuid/enter-recovery', async (req, res) => {
+  const { uuid } = req.params;
+  deviceController.enterRecovery(uuid)
+    .then(() => {
+      res.json({ status: 'completed'});
+    })
+});
+
 app.get('/get-connected-devices', async (req, res) => {
   res.json({"devices": deviceController.getDevices()});
 });

@@ -104,9 +104,12 @@ const performJailbreak = async(id) =>
   })
 }
 
+const enterRecovery = async(id) => await execute(`ideviceenterrecovery ${id}`);
+
 module.exports = {
   getDevices,
   reloadDevices,
   routineDeviceCheck,
-  performJailbreak
+  performJailbreak,
+  enterRecovery
 };
